@@ -1,0 +1,99 @@
+name: security
+
+# Reusable security gate. Platform layer — no product specifics.
+# CRITICAL/HIGH fail the build. MEDIUM is recorded. All results upload as
+# SARIF to the GitHub Security tab, which needs no Advanced Security licence.
+
+on:
+  workflow_call:
+    inputs:
+      mobile_path:
+        description: Path to mobile source. Empty disables mobile scanning.
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        run: |
+          gitleaks detect --source . --redact \
+            --report-format sarif --report-path gitleaks.sarif || true
+
+      - name: TruffleHog (verified only)
+        run: |
+          trufflehog git file://. --only-verified --json > trufflehog.json || true
+          if [ -s trufflehog.json ]; then
+            echo "::error::Verified live credential found. Rotate before anything else."
+            exit 1
+          fi
+
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: gitleaks.sarif
+          category: gitleaks
+
+  sast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Semgrep
+        run: |
+          semgrep --config=auto --config=p/owasp-top-ten \
+            --sarif --output=semgrep.sarif || true
+
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+  dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy (report)
+        run: |
+          trivy fs --scanners vuln,secret,misconfig \
+            --format sarif --output trivy.sarif . || true
+
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy.sarif
+          category: trivy
+
+      - name: Trivy (gate)
+        run: trivy fs --severity HIGH,CRITICAL --exit-code 1 .
+
+  mobile:
+    runs-on: ubuntu-latest
+    if: inputs.mobile_path != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: mobsfscan
+        run: mobsfscan --sarif -o mobsfscan.sarif ${{ inputs.mobile_path }} || true
+
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: mobsfscan.sarif
+          category: mobsfscan
+
+# Not in this workflow, by design:
+#   Garak      — scheduled, and on prompt changes. Slow; pin the version and
+#                compare runs against each other, never as a score to improve.
+#   MobSF full — occasional pre-release step for the third-party SDK inventory.
