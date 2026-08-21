@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cockpit</title>
+<style>
+:root{
+  --bg:#0F0E0D; --card:#191715; --card2:#211E1B; --line:#2C2825; --line2:#3A3530;
+  --ink:#F0EBE4; --dim:#9A9186; --dimmer:#6B635A;
+  --hot:#E05B3C; --warm:#DDA03A; --ok:#5D9E82; --info:#5B84A8; --violet:#8B7BA8;
+  --f:ui-monospace,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.55 var(--f);
+  padding:22px 20px 60px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto}
+
+/* nav */
+.crumb{display:flex;align-items:center;gap:8px;font-size:11.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--dimmer);margin-bottom:4px}
+.crumb b{color:var(--dim);font-weight:500;cursor:pointer}
+.crumb b:hover{color:var(--ink)}
+.crumb span{color:var(--line2)}
+h1{font-size:22px;font-weight:500;letter-spacing:-.01em;margin-bottom:2px}
+.sub{color:var(--dimmer);font-size:12px;margin-bottom:22px}
+
+/* attention banner */
+.att{background:linear-gradient(180deg,#2A1712,#1E1512);
+  border:1px solid #4A2A20;border-left:3px solid var(--hot);
+  border-radius:4px;padding:14px 16px;margin-bottom:20px}
+.att.calm{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--ok)}
+.att h2{font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--hot);font-weight:500;margin-bottom:10px}
+.att.calm h2{color:var(--ok)}
+.ask{display:flex;gap:12px;padding:8px 0;border-top:1px solid rgba(255,255,255,.05);
+  align-items:baseline;cursor:pointer}
+.ask:first-of-type{border-top:0}
+.ask:hover{color:var(--ink)}
+.ask .who{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  padding:2px 6px;border-radius:2px;background:rgba(224,91,60,.15);color:var(--hot);
+  white-space:nowrap}
+.ask .who.d{background:rgba(139,123,168,.15);color:var(--violet)}
+.ask .q{flex:1;font-size:13px}
+.ask .t{color:var(--dim);font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* metric strip */
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:1px;background:var(--line);border:1px solid var(--line);
+  border-radius:4px;overflow:hidden;margin-bottom:20px}
+.m{background:var(--card);padding:14px 16px}
+.m .v{font-size:23px;line-height:1.15;font-variant-numeric:tabular-nums}
+.m .k{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dimmer);margin-top:5px}
+.m .d{font-size:11px;color:var(--dim);margin-top:3px}
+
+/* generic card */
+.card{background:var(--card);border:1px solid var(--line);
+  border-radius:4px;padding:16px;margin-bottom:16px}
+h2.sec{font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim);font-weight:500;margin-bottom:12px;
+  padding-bottom:9px;border-bottom:1px solid var(--line)}
+
+/* slice rows */
+.slice{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;
+  padding:12px 12px;border:1px solid var(--line);border-radius:3px;
+  margin-bottom:8px;cursor:pointer;background:var(--card2)}
+.slice:hover{border-color:var(--line2)}
+.slice .nm{font-size:14px}
+.slice .ph{font-size:11px;color:var(--dimmer);letter-spacing:.06em;
+  text-transform:uppercase;margin-top:3px}
+.slice .rt{text-align:right;font-size:12px;color:var(--dim);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.prog{height:4px;background:var(--bg);border-radius:2px;
+  overflow:hidden;margin-top:8px;display:flex}
+.prog i{display:block;height:100%}
+.pill{display:inline-block;font-size:10.5px;letter-spacing:.06em;
+  text-transform:uppercase;padding:2px 6px;border-radius:2px;margin-left:6px}
+.p-hot{background:rgba(224,91,60,.15);color:var(--hot)}
+.p-warm{background:rgba(221,160,58,.15);color:var(--warm)}
+.p-ok{background:rgba(93,158,130,.15);color:var(--ok)}
+
+/* kanban */
+.kan{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(158px,1fr))}
+.col{background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:10px;min-height:70px}
+.colh{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
+  display:flex;justify-content:space-between;margin-bottom:9px}
+.tk{background:var(--card2);border-left:2px solid var(--line2);padding:7px 9px;
+  margin-bottom:6px;border-radius:2px;font-size:12.5px;cursor:pointer}
+.tk:hover{background:var(--card)}
+.tk.b{border-left-color:var(--hot)} .tk.w{border-left-color:var(--warm)}
+.tk small{display:block;color:var(--dimmer);font-size:10.5px;margin-top:2px}
+
+/* table */
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--dimmer);font-weight:500;font-size:10.5px;
+  letter-spacing:.1em;text-transform:uppercase;padding:0 10px 8px 0}
+td{padding:7px 10px 7px 0;border-top:1px solid var(--line);vertical-align:top}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.bar{height:3px;background:var(--bg);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--info)}
+
+/* timeline */
+.tl{position:relative;padding-left:18px}
+.tl:before{content:'';position:absolute;left:4px;top:4px;bottom:4px;
+  width:1px;background:var(--line)}
+.ev{position:relative;padding:7px 0;font-size:12.5px}
+.ev:before{content:'';position:absolute;left:-18px;top:13px;width:7px;height:7px;
+  border-radius:50%;background:var(--line2);border:2px solid var(--bg)}
+.ev.hot:before{background:var(--hot)} .ev.ok:before{background:var(--ok)}
+.ev.warm:before{background:var(--warm)}
+.ev .h{display:flex;gap:10px;align-items:baseline}
+.ev .ty{color:var(--dim);font-size:11px;letter-spacing:.06em}
+.ev .ts{color:var(--dimmer);font-size:11px;margin-left:auto;white-space:nowrap}
+.ev .dt{color:var(--dim);font-size:12px;margin-top:2px}
+
+.flow div{display:flex;justify-content:space-between;gap:10px;padding:6px 0;
+  border-top:1px solid var(--line);font-size:12.5px}
+.flow div:first-child{border-top:0}
+.ar{color:var(--dimmer)}
+.hot{color:var(--hot)} .warm{color:var(--warm)} .ok{color:var(--ok)}
+.dim{color:var(--dim)} .dimmer{color:var(--dimmer)}
+.empty{color:var(--dimmer);font-size:12px;padding:10px 0}
+.grid2{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.back{background:none;border:1px solid var(--line);color:var(--dim);
+  font:inherit;font-size:11.5px;padding:5px 11px;border-radius:3px;
+  cursor:pointer;margin-bottom:16px}
+.back:hover{border-color:var(--line2);color:var(--ink)}
+.drop{border:1px dashed var(--line);border-radius:4px;padding:30px;text-align:center;
+  color:var(--dimmer);font-size:12.5px;cursor:pointer}
+.drop:hover{border-color:var(--dim);color:var(--dim)}
+.demo{background:rgba(91,132,168,.1);border:1px solid rgba(91,132,168,.25);
+  color:var(--info);font-size:11.5px;padding:8px 12px;border-radius:3px;margin-bottom:16px}
+</style>
+</head>
+<body><div class="wrap" id="root"></div>
+
+<script>
+/* ══ estado ══ */
+let EV=[], DEMO=true, view={l:'ceo'};
+const $=s=>document.getElementById(s);
+const esc=t=>String(t??'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const T=e=>new Date(e.ts).getTime();
+const NOW=()=>DEMO?DEMO_NOW:Date.now();
+function dur(s){if(s==null)return'—';s=Math.round(s);
+  if(s<60)return s+'s';if(s<3600)return Math.round(s/60)+'m';
+  if(s<86400)return(s/3600).toFixed(1)+'h';return(s/86400).toFixed(1)+'d';}
+
+/* ══ derivaciones ══ */
+function model(){
+  const now=NOW();
+  const closed=new Set(EV.filter(e=>e.event==='waiting.ended').map(e=>e.task_id+'|'+e.waiting_on));
+  const waiting=EV.filter(e=>e.event==='waiting.started'&&!closed.has(e.task_id+'|'+e.waiting_on))
+    .map(e=>({...e,waited:(now-T(e))/1000}));
+
+  const unb=new Set(EV.filter(e=>e.event==='unblocked').map(e=>e.task_id));
+  const blocked=EV.filter(e=>e.event==='blocked'&&!unb.has(e.task_id))
+    .map(e=>({...e,since:(now-T(e))/1000}));
+
+  const tasks={};
+  EV.slice().sort((a,b)=>T(a)-T(b)).forEach(e=>{
+    if(!e.task_id)return;
+    const t=tasks[e.task_id]||={id:e.task_id,slice:e.slice,phase:e.phase,
+      state:'backlog',ts:T(e),cost:0,runs:0,secs:0,actors:new Set()};
+    if(e.slice)t.slice=e.slice; if(e.phase)t.phase=e.phase;
+    if(e.actor&&e.actor_type==='agent')t.actors.add(e.actor);
+    if(e.event==='task.state_changed'){t.state=e.to;t.ts=T(e);}
+    if(e.event==='run.finished'){t.cost+=e.cost_usd||0;t.runs++;t.secs+=e.duration_s||0;}
+  });
+  waiting.forEach(w=>{if(tasks[w.task_id])tasks[w.task_id].waiting=w;});
+  blocked.forEach(b=>{if(tasks[b.task_id])tasks[b.task_id].blocked=b;});
+
+  const slices={};
+  Object.values(tasks).forEach(t=>{
+    const s=slices[t.slice||'sin-slice']||={name:t.slice||'sin-slice',tasks:[],
+      cost:0,done:0,wip:0,blocked:0,waiting:0,phases:new Set()};
+    s.tasks.push(t); s.cost+=t.cost; s.phases.add(t.phase);
+    if(t.state==='done')s.done++; else s.wip++;
+    if(t.blocked)s.blocked++; if(t.waiting)s.waiting++;
+  });
+
+  const agents={};
+  EV.filter(e=>e.event==='run.finished').forEach(e=>{
+    const a=agents[e.actor]||={name:e.actor,runs:0,cost:0,secs:0,fail:0};
+    a.runs++;a.cost+=e.cost_usd||0;a.secs+=e.duration_s||0;
+    if(e.outcome&&e.outcome!=='success')a.fail++;
+  });
+
+  const iv=EV.filter(e=>e.event==='intervention');
+  const cost=Object.values(agents).reduce((s,a)=>s+a.cost,0);
+
+  let wpo=0,wds=0;
+  EV.filter(e=>e.event==='waiting.ended').forEach(e=>{
+    if(e.waiting_on==='po')wpo+=e.waited_s||0; if(e.waiting_on==='designer')wds+=e.waited_s||0;});
+  waiting.forEach(w=>{if(w.waiting_on==='po')wpo+=w.waited;if(w.waiting_on==='designer')wds+=w.waited;});
+
+  return {tasks,slices,agents,waiting,blocked,iv,cost,wpo,wds};
+}
+
+/* ══ vistas ══ */
+function crumb(parts){
+  return '<div class="crumb">'+parts.map((p,i)=>
+    i<parts.length-1
+      ? `<b onclick="go(${JSON.stringify(p.go).replace(/"/g,'&quot;')})">${esc(p.t)}</b><span>/</span>`
+      : `<span style="color:var(--dim)">${esc(p.t)}</span>`).join('')+'</div>';
+}
+
+function attention(m,scope){
+  let w=m.waiting.filter(x=>x.waiting_on==='po'||x.waiting_on==='designer');
+  if(scope)w=w.filter(x=>m.tasks[x.task_id]?.slice===scope);
+  w.sort((a,b)=>b.waited-a.waited);
+  if(!w.length)return `<div class="att calm"><h2>Nada te está esperando</h2>
+    <div class="dim" style="font-size:12.5px">Los agentes tienen todo lo que necesitan para seguir.</div></div>`;
+  return `<div class="att"><h2>Esperan tu decisión — ${w.length}</h2>`+
+    w.map(x=>`<div class="ask" onclick="go({l:'task',id:'${x.task_id}'})">
+      <span class="who ${x.waiting_on==='designer'?'d':''}">${esc(x.waiting_on)}</span>
+      <span class="q">${esc(x.question||x.gate||'')}
+        <span class="dimmer" style="font-size:11px"> · ${esc(x.task_id)}</span></span>
+      <span class="t ${x.waited>172800?'hot':x.waited>43200?'warm':'dim'}">${dur(x.waited)}</span>
+    </div>`).join('')+'</div>';
+}
+
+function ceo(){
+  const m=model();
+  const sl=Object.values(m.slices);
+  const totT=Object.keys(m.tasks).length;
+  const done=Object.values(m.tasks).filter(t=>t.state==='done').length;
+  const ivMin=m.iv.reduce((s,e)=>s+(e.minutes_spent||0),0);
+
+  return crumb([{t:'Fábrica'}])+
+  `<h1>Estado general</h1><div class="sub">${EV.length} eventos · ${sl.length} slices · ${totT} tareas</div>`+
+  attention(m)+
+  `<div class="strip">
+    <div class="m"><div class="v">${done}<span class="dimmer" style="font-size:15px">/${totT}</span></div>
+      <div class="k">Tareas hechas</div></div>
+    <div class="m"><div class="v ${m.blocked.length?'hot':''}">${m.blocked.length}</div>
+      <div class="k">Bloqueos</div></div>
+    <div class="m"><div class="v ${m.wpo>m.wds?'hot':''}">${dur(m.wpo)}</div>
+      <div class="k">Esperando al PO</div><div class="d">acumulado</div></div>
+    <div class="m"><div class="v ${m.wds>m.wpo?'warm':''}">${dur(m.wds)}</div>
+      <div class="k">Esperando al designer</div><div class="d">acumulado</div></div>
+    <div class="m"><div class="v">$${m.cost.toFixed(2)}</div><div class="k">Coste</div></div>
+    <div class="m"><div class="v ${m.iv.length>4?'warm':''}">${m.iv.length}</div>
+      <div class="k">Intervenciones</div><div class="d">${ivMin} min a mano</div></div>
+  </div>`+
+
+  `<div class="card"><h2 class="sec">Slices — pulsa para entrar</h2>`+
+  (sl.length?sl.map(s=>{
+    const tot=s.tasks.length, pd=s.done/tot*100, pb=s.blocked/tot*100, pw=s.waiting/tot*100;
+    const flag=s.blocked?'<span class="pill p-hot">bloqueada</span>'
+      :s.waiting?'<span class="pill p-warm">te espera</span>'
+      :s.done===tot?'<span class="pill p-ok">completa</span>':'';
+    return `<div class="slice" onclick="go({l:'slice',id:'${esc(s.name)}'})">
+      <div><div class="nm">${esc(s.name)}${flag}</div>
+        <div class="ph">${[...s.phases].filter(Boolean).join(' · ')}</div>
+        <div class="prog">
+          <i style="width:${pd}%;background:var(--ok)"></i>
+          <i style="width:${pb}%;background:var(--hot)"></i>
+          <i style="width:${pw}%;background:var(--warm)"></i></div></div>
+      <div class="rt">${s.done}/${tot} tareas<br><span class="dimmer">$${s.cost.toFixed(2)}</span></div>
+    </div>`}).join(''):'<div class="empty">Sin slices.</div>')+`</div>`+
+
+  `<div class="grid2">
+    <div class="card"><h2 class="sec">Coste por agente</h2>${agentTable(m)}</div>
+    <div class="card"><h2 class="sec">Quién pasa trabajo a quién</h2>${flowList()}</div>
+  </div>`+
+  `<div class="card"><h2 class="sec">Dónde falla la fábrica</h2>${ivTable(m)}</div>`;
+}
+
+function slice(name){
+  const m=model();
+  const s=m.slices[name]; if(!s)return ceo();
+  const order=['backlog','ready','in_progress','in_review','blocked','uat','done'];
+  const cols={}; s.tasks.forEach(t=>(cols[t.state]||=[]).push(t));
+  const keys=[...new Set([...order.filter(k=>cols[k]),...Object.keys(cols)])];
+
+  return `<button class="back" onclick="go({l:'ceo'})">← Estado general</button>`+
+  crumb([{t:'Fábrica',go:{l:'ceo'}},{t:name}])+
+  `<h1>${esc(name)}</h1><div class="sub">${s.tasks.length} tareas · $${s.cost.toFixed(2)} · ${[...s.phases].filter(Boolean).join(' · ')}</div>`+
+  attention(m,name)+
+  `<div class="card"><h2 class="sec">Kanban — pulsa una tarea</h2><div class="kan">`+
+  keys.map(k=>`<div class="col"><div class="colh"><span>${esc(k)}</span><span>${cols[k].length}</span></div>`+
+    cols[k].map(t=>`<div class="tk ${t.blocked?'b':t.waiting?'w':''}" onclick="go({l:'task',id:'${t.id}'})">
+      ${esc(t.id)}<small>${[...t.actors].join(', ')||'—'} · ${dur((NOW()-t.ts)/1000)}</small></div>`).join('')+
+    `</div>`).join('')+`</div></div>`+
+  `<div class="grid2">
+    <div class="card"><h2 class="sec">Bloqueos en esta slice</h2>${blockTable(m,name)}</div>
+    <div class="card"><h2 class="sec">Coste por tarea</h2>${taskCost(s)}</div>
+  </div>`;
+}
+
+function task(id){
+  const m=model(); const t=m.tasks[id]; if(!t)return ceo();
+  const evs=EV.filter(e=>e.task_id===id).sort((a,b)=>T(a)-T(b));
+  const cls=e=>({blocked:'hot','waiting.started':'warm','run.finished':'ok',
+    'gate.evaluated':e.result==='blocked'?'hot':'ok',intervention:'warm'}[e.event]||'');
+  const label=e=>{
+    if(e.event==='run.finished')return `${e.actor} terminó · ${dur(e.duration_s)} · $${(e.cost_usd||0).toFixed(2)}`;
+    if(e.event==='run.started')return `${e.actor} empezó`;
+    if(e.event==='handoff')return `${e.from_actor} → ${e.to_actor}`;
+    if(e.event==='task.state_changed')return `${e.from} → ${e.to}`;
+    if(e.event==='waiting.started')return `esperando a ${e.waiting_on}`;
+    if(e.event==='waiting.ended')return `${e.waiting_on} respondió tras ${dur(e.waited_s)}`;
+    if(e.event==='blocked')return `bloqueado · ${e.kind}`;
+    if(e.event==='gate.evaluated')return `gate ${e.gate} · ${e.result}`;
+    if(e.event==='intervention')return `intervención humana · ${e.minutes_spent} min`;
+    return e.event;};
+  const detail=e=>e.question||e.detail||e.reason||e.what_failed||e.artifact||'';
+
+  return `<button class="back" onclick="go({l:'slice',id:'${esc(t.slice)}'})">← ${esc(t.slice)}</button>`+
+  crumb([{t:'Fábrica',go:{l:'ceo'}},{t:t.slice,go:{l:'slice',id:t.slice}},{t:id}])+
+  `<h1>${esc(id)}</h1><div class="sub">${esc(t.state)} · ${esc(t.phase||'')} · ${[...t.actors].join(', ')||'sin agentes'}</div>`+
+  (t.waiting?`<div class="att"><h2>Te está esperando</h2>
+    <div class="ask"><span class="who ${t.waiting.waiting_on==='designer'?'d':''}">${esc(t.waiting.waiting_on)}</span>
+    <span class="q">${esc(t.waiting.question||t.waiting.gate)}</span>
+    <span class="t hot">${dur(t.waiting.waited)}</span></div></div>`:'')+
+  `<div class="strip">
+    <div class="m"><div class="v">${t.runs}</div><div class="k">Ejecuciones</div></div>
+    <div class="m"><div class="v">${dur(t.secs)}</div><div class="k">Tiempo de agente</div></div>
+    <div class="m"><div class="v">$${t.cost.toFixed(2)}</div><div class="k">Coste</div></div>
+    <div class="m"><div class="v">${dur((NOW()-t.ts)/1000)}</div><div class="k">En estado actual</div></div>
+  </div>`+
+  `<div class="card"><h2 class="sec">Historia completa</h2><div class="tl">`+
+  evs.map(e=>`<div class="ev ${cls(e)}"><div class="h">
+    <span>${esc(label(e))}</span>
+    <span class="ts">${new Date(T(e)).toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</span></div>
+    ${detail(e)?`<div class="dt">${esc(detail(e))}</div>`:''}</div>`).join('')+
+  `</div></div>`;
+}
+
+/* ══ fragmentos ══ */
+function agentTable(m){
+  const r=Object.values(m.agents).sort((a,b)=>b.cost-a.cost);
+  if(!r.length)return '<div class="empty">Sin ejecuciones.</div>';
+  const mx=Math.max(...r.map(a=>a.cost),0.01);
+  return '<table><tr><th>Agente</th><th></th><th class="num">Runs</th><th class="num">Fallos</th><th class="num">Coste</th></tr>'+
+    r.map(a=>`<tr><td>${esc(a.name)}</td>
+      <td style="width:32%"><div class="bar"><i style="width:${a.cost/mx*100}%"></i></div></td>
+      <td class="num dim">${a.runs}</td>
+      <td class="num ${a.fail?'warm':'dimmer'}">${a.fail}</td>
+      <td class="num">$${a.cost.toFixed(2)}</td></tr>`).join('')+'</table>';
+}
+function flowList(){
+  const f={};EV.filter(e=>e.event==='handoff').forEach(e=>{
+    const k=e.from_actor+'|'+e.to_actor;f[k]=(f[k]||0)+1;});
+  const r=Object.entries(f).sort((a,b)=>b[1]-a[1]);
+  if(!r.length)return '<div class="empty">Sin handoffs.</div>';
+  return '<div class="flow">'+r.map(([k,n])=>{const[a,b]=k.split('|');
+    return `<div><span>${esc(a)} <span class="ar">→</span> ${esc(b)}</span><span class="dim">${n}</span></div>`;}).join('')+'</div>';
+}
+function blockTable(m,slice){
+  const b=m.blocked.filter(x=>!slice||m.tasks[x.task_id]?.slice===slice);
+  if(!b.length)return '<div class="empty">Sin bloqueos.</div>';
+  return '<table><tr><th>Tarea</th><th>Tipo</th><th>Detalle</th><th class="num">Desde</th></tr>'+
+    b.sort((x,y)=>y.since-x.since).map(e=>`<tr>
+      <td><a onclick="go({l:'task',id:'${e.task_id}'})" style="cursor:pointer;color:var(--ink)">${esc(e.task_id)}</a></td>
+      <td class="hot">${esc(e.kind||'')}</td><td class="dim">${esc(e.detail||'')}</td>
+      <td class="num dim">${dur(e.since)}</td></tr>`).join('')+'</table>';
+}
+function taskCost(s){
+  const r=s.tasks.slice().sort((a,b)=>b.cost-a.cost).filter(t=>t.cost>0);
+  if(!r.length)return '<div class="empty">Sin coste registrado.</div>';
+  const mx=Math.max(...r.map(t=>t.cost));
+  return '<table>'+r.map(t=>`<tr><td>${esc(t.id)}</td>
+    <td style="width:45%"><div class="bar"><i style="width:${t.cost/mx*100}%"></i></div></td>
+    <td class="num">$${t.cost.toFixed(2)}</td></tr>`).join('')+'</table>';
+}
+function ivTable(m){
+  const g={};m.iv.forEach(e=>{const k=(e.should_have_been||'?')+'|'+(e.gap_type||'?');
+    const x=g[k]||={a:e.should_have_been,t:e.gap_type,n:0,min:0,ex:e.what_failed};
+    x.n++;x.min+=e.minutes_spent||0;});
+  const r=Object.values(g).sort((a,b)=>b.min-a.min);
+  if(!r.length)return '<div class="empty">Sin intervenciones registradas. Si sigue vacío tras una slice completa, probablemente no se están emitiendo.</div>';
+  return '<table><tr><th>Debía cubrirlo</th><th>Hueco</th><th>Ejemplo</th><th class="num">Veces</th><th class="num">Min</th></tr>'+
+    r.map(x=>`<tr><td>${esc(x.a)}</td><td class="warm">${esc(x.t)}</td>
+      <td class="dim">${esc(x.ex)}</td><td class="num">${x.n}</td>
+      <td class="num dim">${x.min}</td></tr>`).join('')+'</table>';
+}
+
+/* ══ router ══ */
+function go(v){view=v;render();window.scrollTo(0,0);}
+function render(){
+  const banner=DEMO?`<div class="demo">Datos de ejemplo — arrastra tu <b>events.jsonl</b> para ver los reales.</div>`:'';
+  const loader=DEMO?`<div class="card"><div class="drop" id="drop">Arrastra events.jsonl aquí
+    <input type="file" id="file" hidden accept=".jsonl,.json,.txt"></div></div>`:'';
+  const body=view.l==='slice'?slice(view.id):view.l==='task'?task(view.id):ceo();
+  $('root').innerHTML=banner+body+loader;
+  if(DEMO){$('drop').onclick=()=>$('file').click();
+    $('file').onchange=e=>e.target.files[0]&&load(e.target.files[0]);}
+}
+function parse(t){return t.split('\n').filter(l=>l.trim())
+  .map(l=>{try{return JSON.parse(l)}catch{return null}}).filter(Boolean);}
+function load(f){const r=new FileReader();
+  r.onload=()=>{const p=parse(r.result);if(p.length){EV=p;DEMO=false;go({l:'ceo'});}};
+  r.readAsText(f);}
+document.ondragover=e=>e.preventDefault();
+document.ondrop=e=>{e.preventDefault();e.dataTransfer.files[0]&&load(e.dataTransfer.files[0]);};
+
+/* ══ datos de ejemplo ══ */
+const DEMO_NOW=new Date('2026-08-27T16:30:00Z').getTime();
+const h=n=>new Date(DEMO_NOW-n*3600e3).toISOString();
+EV=[
+{ts:h(96),event:"task.state_changed",task_id:"T-101",slice:"save-for-myself",phase:"implement",actor:"orchestrator",actor_type:"agent",from:"ready",to:"in_progress"},
+{ts:h(95),event:"run.started",run_id:"r1",task_id:"T-101",slice:"save-for-myself",phase:"implement",actor:"database",actor_type:"agent"},
+{ts:h(93),event:"run.finished",run_id:"r1",task_id:"T-101",slice:"save-for-myself",phase:"implement",actor:"database",actor_type:"agent",outcome:"success",duration_s:6900,cost_usd:3.10,files_changed:4},
+{ts:h(93),event:"handoff",task_id:"T-101",slice:"save-for-myself",phase:"implement",actor:"database",actor_type:"agent",from_actor:"database",to_actor:"security",reason:"migración de RLS lista",artifact:"PR #12"},
+{ts:h(92),event:"gate.evaluated",task_id:"T-101",slice:"save-for-myself",phase:"review",actor:"security",actor_type:"agent",gate:"security_review",result:"blocked",severity:"HIGH",detail:"C1 — policy UPDATE sin SELECT: los updates devuelven 0 filas en silencio"},
+{ts:h(92),event:"run.finished",run_id:"r2",task_id:"T-101",slice:"save-for-myself",phase:"review",actor:"security",actor_type:"agent",outcome:"success",duration_s:900,cost_usd:0.74},
+{ts:h(90),event:"run.finished",run_id:"r3",task_id:"T-101",slice:"save-for-myself",phase:"implement",actor:"database",actor_type:"agent",outcome:"success",duration_s:2400,cost_usd:1.40},
+{ts:h(88),event:"gate.evaluated",task_id:"T-101",slice:"save-for-myself",phase:"review",actor:"security",actor_type:"agent",gate:"security_review",result:"pass"},
+{ts:h(88),event:"task.state_changed",task_id:"T-101",slice:"save-for-myself",phase:"uat",actor:"orchestrator",actor_type:"agent",from:"in_progress",to:"done",time_in_previous_s:28800},
+
+{ts:h(70),event:"task.state_changed",task_id:"T-102",slice:"save-for-myself",phase:"implement",actor:"orchestrator",actor_type:"agent",from:"ready",to:"in_progress"},
+{ts:h(69),event:"run.finished",run_id:"r4",task_id:"T-102",slice:"save-for-myself",phase:"implement",actor:"api",actor_type:"agent",outcome:"success",duration_s:4200,cost_usd:2.05},
+{ts:h(67),event:"handoff",task_id:"T-102",slice:"save-for-myself",phase:"review",actor:"api",actor_type:"agent",from_actor:"api",to_actor:"reviewer",reason:"endpoint listo, tests verdes",artifact:"PR #14"},
+{ts:h(66),event:"run.finished",run_id:"r5",task_id:"T-102",slice:"save-for-myself",phase:"review",actor:"reviewer",actor_type:"agent",outcome:"success",duration_s:1500,cost_usd:0.92},
+{ts:h(65),event:"task.state_changed",task_id:"T-102",slice:"save-for-myself",phase:"uat",actor:"reviewer",actor_type:"agent",from:"in_progress",to:"uat",time_in_previous_s:18000},
+{ts:h(65),event:"waiting.started",task_id:"T-102",slice:"save-for-myself",phase:"uat",actor:"reviewer",actor_type:"agent",waiting_on:"po",gate:"uat",question:"UAT de guardar-para-mí: build en TestFlight, ¿lo apruebas?",blocking:true},
+
+{ts:h(60),event:"task.state_changed",task_id:"T-118",slice:"share-extension",phase:"implement",actor:"orchestrator",actor_type:"agent",from:"ready",to:"in_progress"},
+{ts:h(58),event:"run.finished",run_id:"r6",task_id:"T-118",slice:"share-extension",phase:"implement",actor:"mobile-platform",actor_type:"agent",outcome:"failed",duration_s:5400,cost_usd:2.80},
+{ts:h(56),event:"blocked",task_id:"T-118",slice:"share-extension",phase:"implement",actor:"mobile-platform",actor_type:"agent",kind:"tooling",detail:"App Group no accesible desde la extensión — falta entitlement en el config plugin"},
+{ts:h(55),event:"intervention",task_id:"T-118",slice:"share-extension",phase:"implement",actor:"po",actor_type:"human",what_failed:"el agente no supo configurar el App Group ni el keychain compartido",should_have_been:"mobile-platform",gap_type:"skill",minutes_spent:75},
+{ts:h(52),event:"run.finished",run_id:"r7",task_id:"T-118",slice:"share-extension",phase:"implement",actor:"mobile-platform",actor_type:"agent",outcome:"success",duration_s:3600,cost_usd:1.95},
+
+{ts:h(40),event:"task.state_changed",task_id:"T-120",slice:"share-extension",phase:"implement",actor:"orchestrator",actor_type:"agent",from:"ready",to:"in_progress"},
+{ts:h(38),event:"run.finished",run_id:"r8",task_id:"T-120",slice:"share-extension",phase:"implement",actor:"mobile-platform",actor_type:"agent",outcome:"success",duration_s:4800,cost_usd:2.40},
+{ts:h(36),event:"handoff",task_id:"T-120",slice:"share-extension",phase:"review",actor:"mobile-platform",actor_type:"agent",from_actor:"mobile-platform",to_actor:"designer",reason:"la extensión cabe en memoria pero solo con 2 destinatarios, no 3"},
+{ts:h(36),event:"waiting.started",task_id:"T-120",slice:"share-extension",phase:"review",actor:"mobile-platform",actor_type:"agent",waiting_on:"designer",gate:"design_qa",question:"¿2 destinatarios sugeridos en vez de 3? El límite de memoria de iOS no da para más",blocking:true},
+
+{ts:h(30),event:"task.state_changed",task_id:"T-131",slice:"enrichment",phase:"implement",actor:"orchestrator",actor_type:"agent",from:"ready",to:"in_progress"},
+{ts:h(28),event:"run.finished",run_id:"r9",task_id:"T-131",slice:"enrichment",phase:"implement",actor:"api",actor_type:"agent",outcome:"success",duration_s:3000,cost_usd:1.60},
+{ts:h(26),event:"blocked",task_id:"T-131",slice:"enrichment",phase:"implement",actor:"api",actor_type:"agent",kind:"spec_gap",detail:"la spec no dice qué mostrar cuando Instagram no devuelve imagen",blocked_by_task:null},
+{ts:h(26),event:"waiting.started",task_id:"T-131",slice:"enrichment",phase:"implement",actor:"api",actor_type:"agent",waiting_on:"po",gate:"spec_decision",question:"¿Qué muestra una card sin imagen? Afecta al 30% de los reels de prueba",blocking:true},
+{ts:h(20),event:"run.finished",run_id:"r10",task_id:"T-131",slice:"enrichment",phase:"implement",actor:"security",actor_type:"agent",outcome:"success",duration_s:1200,cost_usd:0.68},
+{ts:h(20),event:"gate.evaluated",task_id:"T-131",slice:"enrichment",phase:"review",actor:"security",actor_type:"agent",gate:"security_review",result:"blocked",severity:"HIGH",detail:"H1 — título scrapeado llega al clasificador sin delimitar: inyección indirecta"},
+{ts:h(14),event:"intervention",task_id:"T-131",slice:"enrichment",phase:"implement",actor:"po",actor_type:"human",what_failed:"la spec de enrichment no cubría el caso degradado",should_have_been:"api",gap_type:"spec",minutes_spent:40},
+
+{ts:h(12),event:"task.state_changed",task_id:"T-140",slice:"library",phase:"specify",actor:"orchestrator",actor_type:"agent",from:"backlog",to:"ready"},
+{ts:h(8),event:"task.state_changed",task_id:"T-141",slice:"library",phase:"specify",actor:"orchestrator",actor_type:"agent",from:"backlog",to:"ready"}
+];
+render();
+</script>
+</body></html>
