@@ -103,15 +103,35 @@ Sin estos bucles, la plataforma se queda en fuerza de día uno mientras el códi
 
 ---
 
+## Agentes
+
+**Proceso — siempre activos:** orchestrator, implementer, reviewer (modelo
+distinto al implementer), test.
+
+**Especialistas de dominio:**
+
+| Agente | Dominio |
+|---|---|
+| `mobile-platform` | Expo/RN, config plugins, share extensions, deep links, permisos, arranque |
+| `database` | Postgres, migraciones, RLS, tests multi-usuario |
+| `api` | Contratos, autorización, idempotencia, atomicidad de cupos, síncrono vs background |
+| `security` | STRIDE, OWASP, SSRF, inyección de prompts, secretos. **Hallazgos no anulables** |
+| `design` | Prototipos en Figma, design system, Code Connect. **Salida no válida sin aprobación humana** |
+| `release` | Builds, firma, tiendas, versionado, rollout |
+
+Las dos autoridades asimétricas son inversas a propósito: seguridad no se anula,
+diseño no se acepta sin humano.
+
 ## Estado
 
-Iteración 0. Lo que hay:
+Iteración 0. Listo para usar.
 
-- [x] Agente de seguridad, con skill y workflow de CI
-- [x] Agente de diseño, con skill de prototipado en Figma
-- [x] Esquema de eventos y cockpit
-- [x] Decisiones de plataforma y registro de herramientas en `docs/`
-- [ ] Emisor de eventos ← siguiente
-- [ ] Agentes: mobile-platform, database, api, release
-- [ ] Preset de Spec Kit
-- [ ] Plantillas de documentos
+- [x] Seis agentes de dominio definidos
+- [x] Skills: `security-review`, `figma-prototyping` (con `eval.md` y referencias)
+- [x] Workflow de CI de seguridad
+- [x] Esquema de eventos, emisor y cockpit
+- [x] Preset de Spec Kit
+- [x] Configuración de modelo y esfuerzo por agente
+- [x] Decisiones de plataforma y registro de herramientas
+- [ ] Plantillas de documentos canónicos
+- [ ] Captura de coste por ejecución ← **verificar en el harness**

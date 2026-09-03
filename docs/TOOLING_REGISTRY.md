@@ -316,3 +316,103 @@ Es exactamente lo que le falta al `INTERVENTION_LOG`: convertir sesiones reales 
 Para categorías con opción oficial, **primera parte gana a estrellas**. Una skill oficial de PostHog o Expo con pocas estrellas se actualiza cuando cambia el producto; una comunitaria con muchas, no necesariamente.
 
 Y las estrellas reportadas por directorios de terceros son poco fiables — para el mismo repo hemos visto cifras que varían entre 76k y 108k. Verificar en GitHub directamente.
+
+---
+
+## Parte G — Quinta tanda
+
+### `trailhq/Graft` — ✅ ADOPTAR. Sustituye a Graphify.
+
+**MIT · 5,1k estrellas · 465 forks · 435 commits · Nanonets**
+
+Capa de contexto: construye un grafo de conocimiento del código como ficheros
+markdown enlazados, uno por sistema/API/concepto.
+
+**Por qué gana a Graphify:**
+
+| | Graft | Graphify |
+|---|---|---|
+| Wiring nativo por harness | Sí, escribe el fichero de instrucción de cada agente | No |
+| TS/JSX/TSX + Python full-fidelity | Sí — el stack exacto | Parcial |
+| Submódulos | `--follow-submodules` — **es la estructura factory↔producto** | No |
+| Benchmark externo | SWE-bench Verified, grader oficial: 33/50 vs 27/50 | No publicado |
+| Radio de impacto de un diff | `graft blast`, con markdown para PR y responsables por historial de git | No |
+
+El tier estructural es tree-sitter puro: determinista, sin modelo, sin red, `$0`.
+`graft build` no necesita clave. Solo `--deep` llama a un proveedor.
+
+**Cautelas:**
+- `graft init` escribe **fuera del repo** (config de Codex a nivel de usuario,
+  aplica a todos tus repos) → usar `--no-global`.
+- Telemetría anónima opt-out → `DO_NOT_TRACK=1`.
+- **Identidad confusa:** el repo es `trailhq/Graft`, los badges apuntan a
+  `NanoNets/Graft`, la URL de desarrollo a `NanoNets/context-graph-engine`.
+  Confirmar cuál es canónico antes de fijar dependencia.
+- 50 instancias de SWE-bench es muestra pequeña y la eligieron ellos. El método
+  es honesto (parche aplicado, tests de los mantenedores), la muestra no es
+  grande.
+
+**Momento:** final de la slice 1, no día uno. El tier estructural es gratis e
+instantáneo, así que no hace falta esperar a la slice 3.
+
+**Sigue sin resolver:** Graft indexa código, **no los 25 documentos canónicos**.
+El problema de contexto documental permanece abierto.
+
+### `Graphify-Labs/graphify` — ⬇️ SUSTITUIDO por Graft
+
+Buena herramienta y misma filosofía (tree-sitter, local, sin embeddings), pero
+Graft la supera en las cuatro dimensiones que importan aquí: wiring nativo,
+submódulos, benchmark verificable y radio de impacto.
+
+Se conserva en el registro por si Graft resulta problemático.
+
+### `mattpocock/skills` — ✅ ADOPTAR SELECTIVAMENTE
+
+**MIT.** Colección personal publicada. ~21 skills. El autor la construyó contra
+modos de fallo reales, el más común la desalineación.
+
+**Tomar:**
+
+| Skill | Por qué |
+|---|---|
+| **`writing-for-agents`** | **La más valiosa.** Escribir skills, AGENTS.md y docs que un agente alcanza por puntero. Es la meta-herramienta de construir una fábrica de skills. Instalar **antes** de escribir los agentes restantes. |
+| `diagnosing-bugs` | Bucle de depuración con fases controladas. Nada en el stack cubre diagnóstico. |
+| `git-guardrails` | Seguridad de git para agentes. Worktrees no lo cubren. |
+| Arquitectura (módulos profundos, lenguaje ubicuo) | Aplicable al monolito modular de FastAPI |
+
+**Descartar por duplicación:** `tdd` (duplica Superpowers), `write-a-prd`
+(duplica `specify` de Spec Kit), `grill-me` (solapa `/brainstorm`). Dos skills
+compitiendo por el mismo momento es peor que una.
+
+**Cautelas:** opinionado sobre TypeScript/Node — encaja con Expo, valor parcial
+en FastAPI. El propio autor avisa de que no está pensada para copiarse en bloque.
+
+**Uso extra:** es la referencia de facto del formato SKILL.md. Contrastar los
+SKILL.md propios contra los suyos como control de calidad.
+
+### `totalumlabs/ai-app-builder-open` — ❌ DESCARTADO
+
+**5 estrellas · 3 watchers · 0 forks · sin releases**
+
+Genera apps Next.js full-stack. Tres razones:
+
+1. **Es web, no móvil.** Cero solape con Expo + extensión nativa.
+2. **No es plataforma abierta.** El repo es un frontend; hosting, sandboxes, base
+   de datos, agentes, dominios y GitHub viven tras la API de Totalum con su
+   clave. Cambiaría el stack decidido por un proveedor único de pago.
+3. **Dirección contraria.** Se define como no-code, prompt a app desplegada.
+   Este proyecto es lo opuesto: specs versionadas, TDD forzado, gates de
+   seguridad no anulables. El blueprint ya rechazaba el vibe-coding.
+
+El README es marketing de Totalum tanto como documentación.
+
+### `block/buzz` — criterio de reevaluación afinado
+
+El criterio anterior era vago. El concreto: **revisar cuando se cumplan las dos
+condiciones a la vez** —
+1. Sus gates de aprobación de workflow estén terminados (hoy en "el pegamento
+   aún secándose").
+2. Haya más de dos humanos o agentes corriendo en paralelo de forma continua.
+
+**Ventaja del orden actual:** `events.jsonl` es portable. Si Buzz madura, los
+eventos migran. Al revés no: empezando en Buzz, el historial vive dentro de Buzz.

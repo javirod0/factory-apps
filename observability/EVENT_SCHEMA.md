@@ -16,7 +16,7 @@ La instrumentación es lo caro de acertar y lo barato de hacer. La vista es lo c
 
 ## Formato
 
-Un evento por línea, JSON, append-only. `factory/observability/events.jsonl` en `tovu`, commiteado al repo.
+Un evento por línea, JSON, append-only. `factory/observability/events.jsonl` en el repo de producto, commiteado.
 
 Por qué JSONL en git y no una base de datos: con dos personas, cero infraestructura que mantener, historial versionado gratis, y `grep` funciona. Cuando duela, se migra a SQLite. No antes.
 
