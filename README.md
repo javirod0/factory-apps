@@ -1,4 +1,4 @@
-# factory
+# factory-apps
 
 Plataforma reutilizable para construir productos móviles con agentes.
 
@@ -84,7 +84,7 @@ Ver `observability/EVENT_SCHEMA.md`. El cockpit es un archivo HTML sin servidor.
 Desde el repo de un producto, versionado:
 
 ```bash
-git submodule add https://github.com/javirod0/factory .factory
+git submodule add https://github.com/javirod0/factory-apps .factory
 git -C .factory checkout v0.1.0
 ```
 
