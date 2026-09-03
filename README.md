@@ -108,7 +108,9 @@ Sin estos bucles, la plataforma se queda en fuerza de día uno mientras el códi
 Iteración 0. Lo que hay:
 
 - [x] Agente de seguridad, con skill y workflow de CI
+- [x] Agente de diseño, con skill de prototipado en Figma
 - [x] Esquema de eventos y cockpit
+- [x] Decisiones de plataforma y registro de herramientas en `docs/`
 - [ ] Emisor de eventos ← siguiente
 - [ ] Agentes: mobile-platform, database, api, release
 - [ ] Preset de Spec Kit

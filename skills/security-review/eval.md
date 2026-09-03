@@ -37,6 +37,7 @@ Run every check. Any FAIL means fix the report before returning it.
 - [ ] No fixes applied directly. Reported and proposed only.
 - [ ] No exploit code beyond the minimum needed to prove a finding.
 - [ ] Nothing tested that the product does not own.
+- [ ] Dynamic testing, if run, targeted staging only — never production.
 - [ ] No production credentials used or requested.
 - [ ] No finding softened for schedule reasons.
 

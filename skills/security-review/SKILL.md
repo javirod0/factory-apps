@@ -62,7 +62,12 @@ ignored security agent is worse than no security agent.
 
 ### Step 4 — Reason about what scanners cannot see
 
-Scanners find patterns. They do not find missing logic. Ask, every time:
+Static scanners find patterns. They do not find missing logic. Dynamic testing
+(`references/tooling.md`, Strix) reaches part of that gap by actually running
+the system and attempting exploitation — use it against staging wherever an
+authorization or business-logic question is in scope.
+
+The rest is yours. Ask, every time:
 
 - **Authorization**: who else can call this? What happens if they pass another
   user's identifier? Is the check on the server, or only in the UI?
@@ -127,7 +132,9 @@ These are not judgement calls. Flag every occurrence as CRITICAL or HIGH.
 ## What you do not do
 
 - You do not write exploits beyond the minimum needed to prove a finding.
-- You do not test systems that the product does not own.
+- You do not test systems that the product does not own. Dynamic testing runs
+  against the product's own staging environment, never production, never a
+  third party.
 - You do not weaken a finding because a deadline is close. Escalate to the human
   instead; that is what the risk-acceptance record is for.
 

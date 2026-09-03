@@ -10,7 +10,14 @@ GitHub Security tab without an Advanced Security licence.
 | Semgrep CE | SAST | every PR |
 | Trivy | Dependencies, containers, IaC | every PR + nightly |
 | mobsfscan | Mobile-specific SAST | every PR touching mobile |
+| **Strix** | **DAST — dynamic, exploit-validated** | **quick on PR, full scheduled** |
 | Garak | LLM weakness probing | scheduled + when prompts change |
+
+## Static versus dynamic
+
+Everything above except Strix finds **patterns**. Strix finds **missing logic**, which is the category a static scanner structurally cannot reach.
+
+The distinction matters most for authorization. No static tool can tell you that user B can read user A's row — that requires running the system and trying. If the product's core promise is per-item permissions, dynamic testing is not optional coverage, it is the coverage.
 
 ## Why two secret scanners
 
@@ -86,6 +93,72 @@ mobsfscan --sarif -o mobsfscan.sarif ./apps/mobile
 
 The full MobSF server is a separate, occasional pre-release step — see
 `mobile-native.md`.
+
+## Strix
+
+Autonomous agents that run the application dynamically, attempt exploitation,
+and validate each finding with a working proof of concept. Coverage spans
+broken access control (IDOR, privilege escalation, auth bypass), injection,
+SSRF, business logic flaws including race conditions, and API issues such as
+mass assignment and rate-limit bypass.
+
+Install with `pipx install strix-agent`. The project also advertises a
+`curl | bash` installer; prefer the package manager.
+
+```bash
+# Grey-box against a running staging target
+strix --target https://staging.internal --scan-mode full
+
+# Source review of a local codebase
+strix --target ./services/api
+
+# Read results — local server on 127.0.0.1, reads run files off disk
+strix view
+```
+
+Results are written to disk as the run proceeds. Nothing leaves the machine in
+the open-source CLI; there is a separate hosted platform, which is a different
+product.
+
+### Hard boundaries
+
+**These are not configurable preferences.**
+
+- **Staging only.** Never point Strix at production. It is designed to succeed
+  at exploitation.
+- **Only targets the product owns.** Never a third-party domain, never a
+  dependency's hosted service, never a partner API.
+- **Sandboxed.** It runs inside its own container image by design. Do not
+  disable the sandbox.
+- **Credentials are staging credentials.** Seed test users; never use a real
+  account.
+
+The security skill forbids writing exploits beyond what proves a finding, and
+forbids testing systems the product does not own. Strix does not create an
+exception to either rule — it operates inside them, against the product's own
+staging environment.
+
+### Cost and cadence
+
+Every run consumes model tokens, so depth is a budget decision, not a default.
+
+| Cadence | Mode |
+|---|---|
+| Pull request | Quick. Scopes automatically to changed files. |
+| Nightly or weekly on staging | Full, grey-box against the running target |
+| Pre-release | Full, plus manual review of findings |
+
+### Ordering dependency
+
+Strix needs a deployed target for its dynamic mode. It cannot run meaningfully
+until the first slice has an API in staging. Until then, only source-review mode
+is available, which overlaps with Semgrep and adds less.
+
+### Scope limit
+
+Web and API. Strix does not test a compiled mobile binary — that remains
+mobsfscan plus the pre-release MobSF pass. Strix covers the backend the app
+talks to, which is where authorization actually lives.
 
 ## Garak
 
