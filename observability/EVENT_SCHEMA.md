@@ -106,6 +106,11 @@ Un handoff a un humano (`to_actor: "po"`) es también un `waiting.started`. Emí
 
 `waiting_on`: `po` · `designer` · `agent:<nombre>` · `external`
 
+**Si el producto no tiene diseñador humano**, las aprobaciones de diseño van a
+`po` con `gate: design_approval`. Ese contador pasa a ser el más importante del
+cockpit: el PO se convierte en el único humano del bucle de diseño, y si la
+cifra sube, la fábrica está parada en una persona.
+
 En un equipo de dos personas, el tiempo agregado en `waiting_on: po` es casi siempre la mayor fuente de retraso del proyecto, y casi nadie lo mide. Si esta cifra sube, el cuello de botella eres tú, y conviene saberlo antes de culpar a los agentes.
 
 ### `blocked` / `unblocked`
@@ -129,7 +134,7 @@ Distinto de `waiting`: waiting es esperar una decisión, blocked es no poder ava
  "result":"blocked","severity":"HIGH","detail":"C1: policy UPDATE sin SELECT"}
 ```
 
-`gate`: `tests` · `security_review` · `code_review` · `design_qa` · `uat` · `analyze`
+`gate`: `tests` · `security_review` · `code_review` · `design_qa` · `design_approval` · `uat` · `analyze`
 
 ### `intervention`
 
